@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getMealById, toYoutubeEmbedUrl } from '@/lib/mealdb';
 import FavoriteButton from '@/components/FavoriteButton';
+import RecipeInstructions from '@/components/RecipeInstructions';
 
 interface RecipePageProps {
   params: { id: string };
@@ -45,7 +46,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
           <div className="recipe-detail-actions">
             <FavoriteButton mealId={meal.id} variant="inline" />
             {meal.sourceUrl && (
-              <a
+              
                 href={meal.sourceUrl}
                 target="_blank"
                 rel="noreferrer"
@@ -73,9 +74,13 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
         <div>
           <h2>Preparación</h2>
-          <p className="instructions">
-            {meal.instructions ?? 'Esta receta no tiene instrucciones cargadas.'}
-          </p>
+          {meal.instructions ? (
+            <RecipeInstructions text={meal.instructions} />
+          ) : (
+            <p className="instructions">
+              Esta receta no tiene instrucciones cargadas.
+            </p>
+          )}
 
           {embedUrl && (
             <div className="video-embed">
