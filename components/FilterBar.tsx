@@ -1,9 +1,7 @@
 'use client';
 
-import type { MealDbCategory } from '@/types/meal';
-
 interface FilterBarProps {
-  categories: MealDbCategory[];
+  categories: string[];
   areas: string[];
   category: string;
   area: string;
@@ -33,8 +31,8 @@ export default function FilterBar({
       >
         <option value="">Toda categoría</option>
         {categories.map((c) => (
-          <option key={c.idCategory} value={c.strCategory}>
-            {c.strCategory}
+          <option key={c} value={c}>
+            {c}
           </option>
         ))}
       </select>
