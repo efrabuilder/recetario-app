@@ -25,11 +25,11 @@ export interface MealSummary {
   name: string;
   thumbnail: string | null;
   category?: string;
+  area?: string;
 }
 
 // Forma completa que usamos en la página de detalle
 export interface MealDetail extends MealSummary {
-  area: string | null;
   instructions: string | null;
   tags: string[];
   youtubeUrl: string | null;
