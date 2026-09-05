@@ -7,13 +7,12 @@ import RecipeGrid from '@/components/RecipeGrid';
 import {
   filterByArea,
   filterByCategory,
-  getAllAreas,
+  getAvailableAreas,
   getAvailableCategories,
   getFullMealCatalog,
   searchMealsByName,
 } from '@/lib/mealdb';
 import {
-  SPOONACULAR_CUISINES,
   filterBySpoonacularCuisine,
   isSpoonacularCuisine,
 } from '@/lib/spoonacular';
@@ -29,9 +28,13 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [catalog, setCatalog] = useState<MealSummary[]>([]);
-  const [areas, setAreas] = useState<string[]>([]);
 
   const categories = useMemo(() => getAvailableCategories(catalog), [catalog]);
+  // Derivada del catálogo real (no del listado maestro de TheMealDB): así toda
+  // opción del selector tiene al menos una receta garantizada. Spoonacular se
+  // suma como plus al filtrar (ver handleAreaChange), no como opción propia,
+  // porque no podemos garantizar de antemano que tenga resultados.
+  const areas = useMemo(() => getAvailableAreas(catalog), [catalog]);
 
   useEffect(() => {
     setLoading(true);
@@ -47,17 +50,6 @@ export default function HomePage() {
         );
       })
       .finally(() => setLoading(false));
-
-    getAllAreas()
-      .then((mealDbAreas) => {
-        const merged = new Set([...mealDbAreas, ...SPOONACULAR_CUISINES]);
-        setAreas(Array.from(merged).sort((a, b) => a.localeCompare(b)));
-      })
-      .catch(() => {
-        // Si falla el listado maestro, al menos dejamos las cuisines de
-        // Spoonacular para que el selector de país no quede vacío.
-        setAreas([...SPOONACULAR_CUISINES].sort((a, b) => a.localeCompare(b)));
-      });
   }, []);
 
   async function runFetch(fetcher: () => Promise<MealSummary[]>) {
