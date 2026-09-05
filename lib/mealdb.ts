@@ -1,9 +1,4 @@
-import type {
-  MealDbCategory,
-  MealDetail,
-  MealSummary,
-  RawMeal,
-} from '@/types/meal';
+import type { MealDetail, MealSummary, RawMeal } from '@/types/meal';
 
 const BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
@@ -31,6 +26,7 @@ function toSummary(meal: RawMeal): MealSummary {
     name: meal.strMeal,
     thumbnail: meal.strMealThumb,
     category: meal.strCategory ?? undefined,
+    area: meal.strArea ?? undefined,
   };
 }
 
@@ -49,7 +45,6 @@ function toDetail(meal: RawMeal): MealDetail {
 
   return {
     ...toSummary(meal),
-    area: meal.strArea,
     instructions: meal.strInstructions,
     tags,
     youtubeUrl: meal.strYoutube || null,
@@ -97,23 +92,22 @@ export async function getMealsByIds(ids: string[]): Promise<MealDetail[]> {
   return results.filter((m): m is MealDetail => m !== null);
 }
 
-export async function getCategories(): Promise<MealDbCategory[]> {
-  const res = await fetch(`${BASE_URL}/categories.php`, {
-    next: { revalidate: 86400 },
-  });
-  if (!res.ok) throw new Error('No se pudieron cargar las categorías');
-  const data = (await res.json()) as { categories: MealDbCategory[] };
-  return data.categories;
+/**
+ * Categorías y áreas disponibles, calculadas a partir de un listado real de
+ * recetas (en vez de list.php?a=list / categories.php). Esas listas "maestras"
+ * de TheMealDB incluyen países que en el nivel gratuito de la API no tienen
+ * ninguna receta cargada, lo que hacía que algunos filtros devolvieran vacío.
+ * Derivarlas de datos reales garantiza que toda opción del selector tenga
+ * al menos una receta.
+ */
+export function getAvailableCategories(meals: MealSummary[]): string[] {
+  const unique = new Set(meals.map((m) => m.category).filter((c): c is string => Boolean(c)));
+  return Array.from(unique).sort((a, b) => a.localeCompare(b));
 }
 
-/** Lista de áreas/regiones (list.php?a=list devuelve objetos { strArea }) */
-export async function getAreas(): Promise<string[]> {
-  const res = await fetch(`${BASE_URL}/list.php?a=list`, {
-    next: { revalidate: 86400 },
-  });
-  if (!res.ok) throw new Error('No se pudieron cargar las áreas');
-  const data = (await res.json()) as { meals: { strArea: string }[] };
-  return data.meals.map((m) => m.strArea);
+export function getAvailableAreas(meals: MealSummary[]): string[] {
+  const unique = new Set(meals.map((m) => m.area).filter((a): a is string => Boolean(a)));
+  return Array.from(unique).sort((a, b) => a.localeCompare(b));
 }
 
 /** Convierte un link normal de YouTube a su URL de embed para el iframe del detalle. */
