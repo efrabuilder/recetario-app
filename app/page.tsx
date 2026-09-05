@@ -7,7 +7,7 @@ import RecipeGrid from '@/components/RecipeGrid';
 import {
   filterByArea,
   filterByCategory,
-  getAvailableAreas,
+  getAllAreas,
   getAvailableCategories,
   getFullMealCatalog,
   searchMealsByName,
@@ -24,9 +24,9 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [catalog, setCatalog] = useState<MealSummary[]>([]);
+  const [areas, setAreas] = useState<string[]>([]);
 
   const categories = useMemo(() => getAvailableCategories(catalog), [catalog]);
-  const areas = useMemo(() => getAvailableAreas(catalog), [catalog]);
 
   useEffect(() => {
     setLoading(true);
@@ -42,6 +42,13 @@ export default function HomePage() {
         );
       })
       .finally(() => setLoading(false));
+
+    getAllAreas()
+      .then(setAreas)
+      .catch(() => {
+        // Si falla el listado maestro, el selector de país queda vacío pero
+        // el resto de la app sigue funcionando con normalidad.
+      });
   }, []);
 
   async function runFetch(fetcher: () => Promise<MealSummary[]>) {
