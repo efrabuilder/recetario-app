@@ -12,6 +12,11 @@ import {
   getFullMealCatalog,
   searchMealsByName,
 } from '@/lib/mealdb';
+import {
+  SPOONACULAR_CUISINES,
+  filterBySpoonacularCuisine,
+  isSpoonacularCuisine,
+} from '@/lib/spoonacular';
 import type { MealSummary } from '@/types/meal';
 
 export default function HomePage() {
@@ -44,10 +49,14 @@ export default function HomePage() {
       .finally(() => setLoading(false));
 
     getAllAreas()
-      .then(setAreas)
+      .then((mealDbAreas) => {
+        const merged = new Set([...mealDbAreas, ...SPOONACULAR_CUISINES]);
+        setAreas(Array.from(merged).sort((a, b) => a.localeCompare(b)));
+      })
       .catch(() => {
-        // Si falla el listado maestro, el selector de país queda vacío pero
-        // el resto de la app sigue funcionando con normalidad.
+        // Si falla el listado maestro, al menos dejamos las cuisines de
+        // Spoonacular para que el selector de país no quede vacío.
+        setAreas([...SPOONACULAR_CUISINES].sort((a, b) => a.localeCompare(b)));
       });
   }, []);
 
@@ -89,7 +98,15 @@ export default function HomePage() {
     setCategory('');
     setQueryInput('');
     if (value) {
-      runFetch(() => filterByArea(value));
+      runFetch(async () => {
+        const [mealDbResults, spoonacularResults] = await Promise.all([
+          filterByArea(value).catch(() => []),
+          isSpoonacularCuisine(value)
+            ? filterBySpoonacularCuisine(value).catch(() => [])
+            : Promise.resolve([]),
+        ]);
+        return [...mealDbResults, ...spoonacularResults];
+      });
     } else {
       setMeals(catalog);
     }

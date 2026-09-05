@@ -40,6 +40,9 @@ export default function Header() {
           <Link href="/" className={pathname === '/' ? 'active' : ''}>
             Buscar
           </Link>
+          <Link href="/drinks" className={pathname === '/drinks' ? 'active' : ''}>
+            Bebidas
+          </Link>
           <Link
             href="/favorites"
             className={pathname === '/favorites' ? 'active' : ''}

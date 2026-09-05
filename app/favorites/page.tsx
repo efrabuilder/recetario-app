@@ -3,8 +3,33 @@
 import { useEffect, useState } from 'react';
 import RecipeGrid from '@/components/RecipeGrid';
 import { useFavorites } from '@/hooks/useFavorites';
-import { getMealsByIds } from '@/lib/mealdb';
+import { getMealById } from '@/lib/mealdb';
+import { fetchSpoonacularMealSummary } from '@/lib/spoonacular';
+import { getDrinkById } from '@/lib/cocktaildb';
 import type { MealSummary } from '@/types/meal';
+
+const SPOONACULAR_PREFIX = 'sp-';
+const DRINK_PREFIX = 'drink-';
+
+async function resolveFavorite(id: string): Promise<MealSummary | null> {
+  try {
+    if (id.startsWith(SPOONACULAR_PREFIX)) {
+      return await fetchSpoonacularMealSummary(id.slice(SPOONACULAR_PREFIX.length));
+    }
+    if (id.startsWith(DRINK_PREFIX)) {
+      const drink = await getDrinkById(id.slice(DRINK_PREFIX.length));
+      return drink
+        ? { id: drink.id, name: drink.name, thumbnail: drink.thumbnail, category: drink.category }
+        : null;
+    }
+    const meal = await getMealById(id);
+    return meal
+      ? { id: meal.id, name: meal.name, thumbnail: meal.thumbnail, category: meal.category }
+      : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function FavoritesPage() {
   const { favoriteIds, hydrated } = useFavorites();
@@ -21,16 +46,9 @@ export default function FavoritesPage() {
     }
 
     setLoading(true);
-    getMealsByIds(favoriteIds)
-      .then((details) =>
-        setMeals(
-          details.map((d) => ({
-            id: d.id,
-            name: d.name,
-            thumbnail: d.thumbnail,
-            category: d.category,
-          }))
-        )
+    Promise.all(favoriteIds.map(resolveFavorite))
+      .then((results) =>
+        setMeals(results.filter((m): m is MealSummary => m !== null))
       )
       .finally(() => setLoading(false));
   }, [favoriteIds, hydrated]);

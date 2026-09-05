@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getMealById, toYoutubeEmbedUrl } from '@/lib/mealdb';
+import { getSpoonacularMealById } from '@/lib/spoonacular';
 import FavoriteButton from '@/components/FavoriteButton';
 import RecipeInstructions from '@/components/RecipeInstructions';
 
@@ -8,8 +9,12 @@ interface RecipePageProps {
   params: { id: string };
 }
 
+const SPOONACULAR_PREFIX = 'sp-';
+
 export default async function RecipePage({ params }: RecipePageProps) {
-  const meal = await getMealById(params.id);
+  const meal = params.id.startsWith(SPOONACULAR_PREFIX)
+    ? await getSpoonacularMealById(params.id.slice(SPOONACULAR_PREFIX.length))
+    : await getMealById(params.id);
 
   if (!meal) {
     notFound();
