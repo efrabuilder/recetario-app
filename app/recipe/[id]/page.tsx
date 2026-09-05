@@ -46,7 +46,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
           <div className="recipe-detail-actions">
             <FavoriteButton mealId={meal.id} variant="inline" />
             {meal.sourceUrl && (
-              
+              <a
                 href={meal.sourceUrl}
                 target="_blank"
                 rel="noreferrer"

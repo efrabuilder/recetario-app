@@ -59,6 +59,36 @@ export async function searchMealsByName(query: string): Promise<MealSummary[]> {
   return meals.map(toSummary);
 }
 
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('');
+
+/**
+ * Construye el catálogo más completo posible combinando `search.php?f=<letra>`
+ * para cada letra del abecedario. TheMealDB no ofrece un "listar todo"; esta es
+ * la forma estándar de recorrer toda la base gratuita, ya que cualquier receta
+ * empieza por alguna letra. Se deduplica por id porque una receta solo aparece
+ * en la respuesta de su propia letra inicial, pero por seguridad igual se filtra.
+ */
+export async function getFullMealCatalog(): Promise<MealSummary[]> {
+  const results = await Promise.all(
+    ALPHABET.map(async (letter) => {
+      try {
+        const meals = await fetchMeals(`/search.php?f=${letter}`);
+        return meals.map(toSummary);
+      } catch {
+        return [];
+      }
+    })
+  );
+
+  const merged = new Map<string, MealSummary>();
+  for (const list of results) {
+    for (const meal of list) {
+      merged.set(meal.id, meal);
+    }
+  }
+  return Array.from(merged.values());
+}
+
 export async function filterByCategory(category: string): Promise<MealSummary[]> {
   const meals = await fetchMeals(`/filter.php?c=${encodeURIComponent(category)}`);
   return meals.map(toSummary);
@@ -93,12 +123,12 @@ export async function getMealsByIds(ids: string[]): Promise<MealDetail[]> {
 }
 
 /**
- * Categorías y áreas disponibles, calculadas a partir de un listado real de
- * recetas (en vez de list.php?a=list / categories.php). Esas listas "maestras"
- * de TheMealDB incluyen países que en el nivel gratuito de la API no tienen
- * ninguna receta cargada, lo que hacía que algunos filtros devolvieran vacío.
- * Derivarlas de datos reales garantiza que toda opción del selector tenga
- * al menos una receta.
+ * Categorías y áreas disponibles, calculadas a partir de un catálogo real de
+ * recetas (getFullMealCatalog, no list.php?a=list / categories.php). Esas
+ * listas "maestras" de TheMealDB incluyen países que en el nivel gratuito de
+ * la API no tienen ninguna receta cargada, lo que hacía que algunos filtros
+ * devolvieran vacío. Derivarlas de datos reales garantiza que toda opción del
+ * selector tenga al menos una receta.
  */
 export function getAvailableCategories(meals: MealSummary[]): string[] {
   const unique = new Set(meals.map((m) => m.category).filter((c): c is string => Boolean(c)));

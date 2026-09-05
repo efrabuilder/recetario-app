@@ -9,6 +9,7 @@ import {
   filterByCategory,
   getAvailableAreas,
   getAvailableCategories,
+  getFullMealCatalog,
   searchMealsByName,
 } from '@/lib/mealdb';
 import type { MealSummary } from '@/types/meal';
@@ -30,7 +31,7 @@ export default function HomePage() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    searchMealsByName('')
+    getFullMealCatalog()
       .then((result) => {
         setCatalog(result);
         setMeals(result);
