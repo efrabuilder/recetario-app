@@ -123,6 +123,27 @@ export async function getMealsByIds(ids: string[]): Promise<MealDetail[]> {
 }
 
 /**
+ * Listado maestro oficial de países de TheMealDB (list.php?a=list). A
+ * diferencia de getAvailableAreas, este incluye TODOS los países que reconoce
+ * la API, aunque en el nivel gratuito alguno pueda no tener ninguna receta
+ * cargada (en ese caso, al filtrar por ese país simplemente no aparecen
+ * resultados, algo que la pantalla ya maneja).
+ */
+export async function getAllAreas(): Promise<string[]> {
+  const res = await fetch(`${BASE_URL}/list.php?a=list`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) {
+    throw new Error(`TheMealDB respondió ${res.status} para list.php?a=list`);
+  }
+
+  const data = (await res.json()) as { meals: { strArea: string }[] | null };
+  const areas = (data.meals ?? []).map((m) => m.strArea).filter(Boolean);
+  return areas.sort((a, b) => a.localeCompare(b));
+}
+
+/**
  * Categorías y áreas disponibles, calculadas a partir de un catálogo real de
  * recetas (getFullMealCatalog, no list.php?a=list / categories.php). Esas
  * listas "maestras" de TheMealDB incluyen países que en el nivel gratuito de
