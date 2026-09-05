@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import SearchBar from '@/components/SearchBar';
 import FilterBar from '@/components/FilterBar';
 import RecipeGrid from '@/components/RecipeGrid';
 import {
   filterByArea,
   filterByCategory,
-  getAreas,
-  getCategories,
+  getAvailableAreas,
+  getAvailableCategories,
   searchMealsByName,
 } from '@/lib/mealdb';
-import type { MealDbCategory, MealSummary } from '@/types/meal';
+import type { MealSummary } from '@/types/meal';
 
 export default function HomePage() {
   const [queryInput, setQueryInput] = useState('');
@@ -22,19 +22,25 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [categories, setCategories] = useState<MealDbCategory[]>([]);
-  const [areas, setAreas] = useState<string[]>([]);
+  const [catalog, setCatalog] = useState<MealSummary[]>([]);
 
-  // Cargamos categorías/áreas para los selects y el listado inicial una sola vez.
+  const categories = useMemo(() => getAvailableCategories(catalog), [catalog]);
+  const areas = useMemo(() => getAvailableAreas(catalog), [catalog]);
+
   useEffect(() => {
-    getCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]));
-    getAreas()
-      .then(setAreas)
-      .catch(() => setAreas([]));
-    runFetch(() => searchMealsByName(''));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setLoading(true);
+    setError(null);
+    searchMealsByName('')
+      .then((result) => {
+        setCatalog(result);
+        setMeals(result);
+      })
+      .catch(() => {
+        setError(
+          'No pudimos cargar recetas ahora mismo. Probá de nuevo en un momento.'
+        );
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   async function runFetch(fetcher: () => Promise<MealSummary[]>) {
@@ -63,21 +69,29 @@ export default function HomePage() {
     setCategory(value);
     setArea('');
     setQueryInput('');
-    runFetch(() => (value ? filterByCategory(value) : searchMealsByName('')));
+    if (value) {
+      runFetch(() => filterByCategory(value));
+    } else {
+      setMeals(catalog);
+    }
   }
 
   function handleAreaChange(value: string) {
     setArea(value);
     setCategory('');
     setQueryInput('');
-    runFetch(() => (value ? filterByArea(value) : searchMealsByName('')));
+    if (value) {
+      runFetch(() => filterByArea(value));
+    } else {
+      setMeals(catalog);
+    }
   }
 
   function handleClear() {
     setQueryInput('');
     setCategory('');
     setArea('');
-    runFetch(() => searchMealsByName(''));
+    setMeals(catalog);
   }
 
   return (
