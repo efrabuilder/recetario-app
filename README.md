@@ -31,9 +31,43 @@ npm run dev
 
 Abrí [http://localhost:3000](http://localhost:3000).
 
-No hace falta ninguna API key: los endpoints usados de TheMealDB (`search.php`,
-`filter.php`, `lookup.php`, `categories.php`, `list.php`) son de acceso libre
-en su nivel de desarrollador (`v1/1`).
+No hace falta ninguna API key para lo básico: los endpoints usados de
+TheMealDB (`search.php`, `filter.php`, `lookup.php`, `categories.php`,
+`list.php`) son de acceso libre en su nivel de desarrollador (`v1/1`).
+
+Para sumar más países y valores nutricionales, la app combina hasta cuatro
+fuentes. Todas son opcionales excepto TheMealDB: si no configurás las
+variables de una fuente, esa fuente simplemente no aporta resultados y el
+resto de la app sigue funcionando igual.
+
+| Fuente      | Variables de entorno                    | Qué aporta |
+|-------------|------------------------------------------|------------|
+| TheMealDB   | (ninguna)                                 | Catálogo base, sin nutrición |
+| Spoonacular | `SPOONACULAR_API_KEY`                     | Recetas por país + nutrición |
+| Edamam      | `EDAMAM_APP_ID`, `EDAMAM_APP_KEY`         | Más países + nutrición |
+| Recetas propias | `SUPABASE_URL`, `SUPABASE_ANON_KEY`   | Recetas curadas a mano para países que ninguna de las APIs cubre bien |
+
+Las recetas propias viven en una tabla `custom_recipes` de Supabase con este
+esquema:
+
+```sql
+create table custom_recipes (
+  id text primary key,
+  name text not null,
+  thumbnail text,
+  category text,
+  area text not null,
+  instructions text,
+  tags text[] default '{}',
+  source_url text,
+  ingredients jsonb not null default '[]',
+  nutrition jsonb
+);
+```
+
+`ingredients` es un arreglo de `{ "name": string, "measure": string }` y
+`nutrition` (opcional) un objeto `{ calories, carbs, fat, protein, sodium }`,
+todos como texto ya formateado (ej. `"420 kcal"`).
 
 ## Estructura
 
