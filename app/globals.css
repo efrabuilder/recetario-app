@@ -491,3 +491,138 @@ button {
   color: var(--color-brick-dark);
   max-width: 60ch;
 }
+
+/* ---------- Mejoras móvil ---------- */
+
+@media (max-width: 640px) {
+  .page {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  /* Header: marca y nav en una sola fila compacta, sin salto feo */
+  .site-header-inner {
+    padding: 0.85rem 1rem;
+    gap: 0.6rem;
+  }
+
+  .brand-name {
+    font-size: 1.15rem;
+  }
+
+  .site-nav {
+    gap: 0.9rem;
+  }
+
+  .site-nav a {
+    font-size: 0.85rem;
+  }
+
+  /* Hero */
+  .hero-sub {
+    max-width: none;
+    font-size: 0.95rem;
+  }
+
+  /* Buscar: input y botón apilados, texto a 16px para evitar zoom en iOS */
+  .search-row {
+    flex-direction: column;
+  }
+
+  .search-input {
+    flex-basis: auto;
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .search-submit {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Filtros: selects a ancho completo, más fáciles de tocar */
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .filter-select {
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+  }
+
+  .filter-clear {
+    align-self: flex-start;
+  }
+
+  /* Grid: una sola tarjeta por fila, bien legible */
+  .recipe-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .recipe-card-image-wrap {
+    aspect-ratio: 16 / 10;
+  }
+
+  /* Botón de favorito con área táctil de al menos 44px */
+  .favorite-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .favorite-button.is-inline {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1.1rem;
+  }
+
+  /* Detalle de receta */
+  .recipe-detail-image {
+    aspect-ratio: 4 / 3;
+  }
+
+  .recipe-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recipe-detail-actions .source-link {
+    text-align: center;
+  }
+
+  .ingredient-list li {
+    font-size: 0.9rem;
+  }
+
+  .instructions {
+    max-width: none;
+  }
+
+  .instructions-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .translate-button {
+    width: 100%;
+  }
+
+  .site-footer {
+    padding: 1.5rem 1rem 2rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-nav {
+    gap: 0.6rem;
+  }
+
+  .site-nav a {
+    font-size: 0.8rem;
+  }
+
+  .brand-name {
+    font-size: 1.05rem;
+  }
+}
