@@ -1,4 +1,4 @@
-import type { Ingredient, MealDetail, MealSummary } from '@/types/meal';
+import type { Ingredient, MealDetail, MealSummary, NutritionInfo } from '@/types/meal';
 
 /**
  * Cuisines que reconoce Spoonacular. Muchos nombres coinciden con los
@@ -101,6 +101,41 @@ function stripHtml(html: string | null | undefined): string | null {
     .trim();
 }
 
+interface SpoonacularNutrient {
+  name: string;
+  amount: number;
+  unit: string;
+}
+
+/** Busca un nutriente por nombre (ej. "Calories", "Protein") y lo formatea como "123 g". */
+function formatNutrient(
+  nutrients: SpoonacularNutrient[],
+  name: string
+): string {
+  const match = nutrients.find((n) => n.name === name);
+  if (!match) return '—';
+  return `${Math.round(match.amount)} ${match.unit}`;
+}
+
+/**
+ * Convierte la lista plana de nutrientes que devuelve Spoonacular
+ * (con includeNutrition=true) a los cinco valores que mostramos en la UI.
+ * Devuelve undefined si Spoonacular no trajo datos de nutrición.
+ */
+function toNutritionInfo(
+  nutrients: SpoonacularNutrient[] | undefined
+): NutritionInfo | undefined {
+  if (!nutrients || nutrients.length === 0) return undefined;
+
+  return {
+    calories: formatNutrient(nutrients, 'Calories'),
+    carbs: formatNutrient(nutrients, 'Carbohydrates'),
+    fat: formatNutrient(nutrients, 'Fat'),
+    protein: formatNutrient(nutrients, 'Protein'),
+    sodium: formatNutrient(nutrients, 'Sodium'),
+  };
+}
+
 /**
  * Detalle de una receta de Spoonacular. Se llama desde un Server Component
  * (la página de detalle), así que la API key nunca viaja al navegador.
@@ -116,7 +151,7 @@ export async function getSpoonacularMealById(
   const res = await fetch(
     `https://api.spoonacular.com/recipes/${encodeURIComponent(
       id
-    )}/information?includeNutrition=false&apiKey=${apiKey}`,
+    )}/information?includeNutrition=true&apiKey=${apiKey}`,
     { next: { revalidate: 3600 } }
   );
 
@@ -134,6 +169,7 @@ export async function getSpoonacularMealById(
     instructions?: string | null;
     sourceUrl?: string | null;
     extendedIngredients?: { nameClean?: string; name?: string; measures?: { us?: { amount?: number; unitShort?: string } } }[];
+    nutrition?: { nutrients?: SpoonacularNutrient[] };
   };
 
   const ingredients: Ingredient[] = (data.extendedIngredients ?? []).map(
@@ -156,5 +192,6 @@ export async function getSpoonacularMealById(
     youtubeUrl: null,
     sourceUrl: data.sourceUrl ?? null,
     ingredients,
+    nutrition: toNutritionInfo(data.nutrition?.nutrients),
   };
 }
