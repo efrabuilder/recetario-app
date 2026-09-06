@@ -28,6 +28,17 @@ export interface MealSummary {
   area?: string;
 }
 
+// Valores nutricionales por porción. Solo disponibles para recetas que vienen
+// de Spoonacular (includeNutrition=true); TheMealDB no expone esta data en su
+// nivel gratuito, así que para esas recetas queda undefined.
+export interface NutritionInfo {
+  calories: string;
+  carbs: string;
+  fat: string;
+  protein: string;
+  sodium: string;
+}
+
 // Forma completa que usamos en la página de detalle
 export interface MealDetail extends MealSummary {
   instructions: string | null;
@@ -35,6 +46,7 @@ export interface MealDetail extends MealSummary {
   youtubeUrl: string | null;
   sourceUrl: string | null;
   ingredients: Ingredient[];
+  nutrition?: NutritionInfo;
 }
 
 export interface MealDbCategory {
