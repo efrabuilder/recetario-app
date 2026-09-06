@@ -95,7 +95,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
             ))}
           </ul>
 
-          <NutritionFacts nutrition={meal.nutrition} />
+          <NutritionFacts nutrition={meal.nutrition} ingredients={meal.ingredients} />
         </div>
 
         <div>
