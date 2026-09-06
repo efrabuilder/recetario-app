@@ -38,6 +38,9 @@ export default function RootLayout({
             TheMealDB
           </a>
           .
+          <p className="site-footer-credit">
+            © 2026 All rights reserved · Designed &amp; built by Efraín Sebastián Rojas Artavia
+          </p>
         </footer>
       </body>
     </html>
