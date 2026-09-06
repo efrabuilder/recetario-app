@@ -5,6 +5,12 @@ import RecipeGrid from '@/components/RecipeGrid';
 import { useFavorites } from '@/hooks/useFavorites';
 import { getMealById } from '@/lib/mealdb';
 import { fetchSpoonacularMealSummary } from '@/lib/spoonacular';
+import { fetchEdamamMealSummary, isEdamamId, stripEdamamPrefix } from '@/lib/edamam';
+import {
+  fetchCustomRecipeSummary,
+  isCustomRecipeId,
+  stripCustomPrefix,
+} from '@/lib/customRecipes';
 import { getDrinkById } from '@/lib/cocktaildb';
 import type { MealSummary } from '@/types/meal';
 
@@ -15,6 +21,12 @@ async function resolveFavorite(id: string): Promise<MealSummary | null> {
   try {
     if (id.startsWith(SPOONACULAR_PREFIX)) {
       return await fetchSpoonacularMealSummary(id.slice(SPOONACULAR_PREFIX.length));
+    }
+    if (isEdamamId(id)) {
+      return await fetchEdamamMealSummary(stripEdamamPrefix(id));
+    }
+    if (isCustomRecipeId(id)) {
+      return await fetchCustomRecipeSummary(stripCustomPrefix(id));
     }
     if (id.startsWith(DRINK_PREFIX)) {
       const drink = await getDrinkById(id.slice(DRINK_PREFIX.length));
