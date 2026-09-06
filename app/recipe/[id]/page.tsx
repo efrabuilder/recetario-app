@@ -2,9 +2,16 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getMealById, toYoutubeEmbedUrl } from '@/lib/mealdb';
 import { getSpoonacularMealById } from '@/lib/spoonacular';
+import { getEdamamMealById, isEdamamId, stripEdamamPrefix } from '@/lib/edamam';
+import {
+  getCustomRecipeById,
+  isCustomRecipeId,
+  stripCustomPrefix,
+} from '@/lib/customRecipes';
 import FavoriteButton from '@/components/FavoriteButton';
 import RecipeInstructions from '@/components/RecipeInstructions';
 import NutritionFacts from '@/components/NutritionFacts';
+import type { MealDetail } from '@/types/meal';
 
 interface RecipePageProps {
   params: { id: string };
@@ -12,10 +19,21 @@ interface RecipePageProps {
 
 const SPOONACULAR_PREFIX = 'sp-';
 
+function resolveMeal(id: string): Promise<MealDetail | null> {
+  if (id.startsWith(SPOONACULAR_PREFIX)) {
+    return getSpoonacularMealById(id.slice(SPOONACULAR_PREFIX.length));
+  }
+  if (isEdamamId(id)) {
+    return getEdamamMealById(stripEdamamPrefix(id));
+  }
+  if (isCustomRecipeId(id)) {
+    return getCustomRecipeById(stripCustomPrefix(id));
+  }
+  return getMealById(id);
+}
+
 export default async function RecipePage({ params }: RecipePageProps) {
-  const meal = params.id.startsWith(SPOONACULAR_PREFIX)
-    ? await getSpoonacularMealById(params.id.slice(SPOONACULAR_PREFIX.length))
-    : await getMealById(params.id);
+  const meal = await resolveMeal(params.id);
 
   if (!meal) {
     notFound();
