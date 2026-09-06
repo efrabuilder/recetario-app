@@ -440,6 +440,31 @@ button {
   font-weight: 600;
 }
 
+.nutrition-verdict {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin: 0 0 0.75rem;
+}
+
+.nutrition-analysis-notes {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-ink-soft);
+}
+
+.nutrition-analysis-summary {
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+}
+
+.nutrition-disclaimer {
+  font-size: 0.8rem;
+  color: var(--color-ink-soft);
+  font-style: italic;
+}
+
 .nutrition-note,
 .nutrition-unavailable {
   margin-top: 0.75rem;
