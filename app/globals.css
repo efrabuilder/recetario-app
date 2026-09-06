@@ -415,6 +415,38 @@ button {
   white-space: nowrap;
 }
 
+.nutrition-facts {
+  margin-top: 2rem;
+}
+
+.nutrition-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1.5px solid var(--color-border);
+}
+
+.nutrition-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1.5px solid var(--color-border);
+  font-size: 0.95rem;
+}
+
+.nutrition-value {
+  color: var(--color-ink-soft);
+  font-weight: 600;
+}
+
+.nutrition-note,
+.nutrition-unavailable {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-ink-soft);
+}
+
 .instructions {
   white-space: pre-line;
   max-width: 68ch;
