@@ -4,6 +4,7 @@ import { getMealById, toYoutubeEmbedUrl } from '@/lib/mealdb';
 import { getSpoonacularMealById } from '@/lib/spoonacular';
 import FavoriteButton from '@/components/FavoriteButton';
 import RecipeInstructions from '@/components/RecipeInstructions';
+import NutritionFacts from '@/components/NutritionFacts';
 
 interface RecipePageProps {
   params: { id: string };
@@ -75,6 +76,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
               </li>
             ))}
           </ul>
+
+          <NutritionFacts nutrition={meal.nutrition} />
         </div>
 
         <div>
