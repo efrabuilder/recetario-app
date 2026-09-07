@@ -1,5 +1,7 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+
 interface FilterBarProps {
   categories: string[];
   areas: string[];
@@ -21,15 +23,17 @@ export default function FilterBar({
   onClear,
   hasActiveFilters,
 }: FilterBarProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="filter-bar">
       <select
         className="filter-select"
         value={category}
         onChange={(event) => onCategoryChange(event.target.value)}
-        aria-label="Filtrar por categoría"
+        aria-label={t('filter.categoryLabel')}
       >
-        <option value="">Toda categoría</option>
+        <option value="">{t('filter.allCategories')}</option>
         {categories.map((c) => (
           <option key={c} value={c}>
             {c}
@@ -41,9 +45,9 @@ export default function FilterBar({
         className="filter-select"
         value={area}
         onChange={(event) => onAreaChange(event.target.value)}
-        aria-label="Filtrar por región"
+        aria-label={t('filter.areaLabel')}
       >
-        <option value="">Toda región</option>
+        <option value="">{t('filter.allAreas')}</option>
         {areas.map((a) => (
           <option key={a} value={a}>
             {a}
@@ -53,7 +57,7 @@ export default function FilterBar({
 
       {hasActiveFilters && (
         <button type="button" className="filter-clear" onClick={onClear}>
-          Quitar filtros
+          {t('filter.clear')}
         </button>
       )}
     </div>
