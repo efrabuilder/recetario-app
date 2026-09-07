@@ -10,7 +10,7 @@ export default function RecipeCard({ meal }: { meal: MealSummary }) {
     : `/recipe/${meal.id}`;
 
   return (
-    <Link href={href} className="recipe-card">
+    <Link href={href} className="recipe-card" prefetch={false}>
       <FavoriteButton mealId={meal.id} />
       <div className="recipe-card-image-wrap">
         {meal.thumbnail && (
