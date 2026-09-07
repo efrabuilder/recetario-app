@@ -14,9 +14,14 @@ export const NUTRITION_LIMITS = {
   sodium: { moderate: 400, high: 800 },
 };
 
+/**
+ * Esta función solo devuelve claves de traducción (definidas en
+ * lib/i18n/translations.ts), nunca texto final: quien la use decide en qué
+ * idioma mostrarlas con t(key).
+ */
 export interface NutritionVerdict {
-  label: string;
-  notes: string[];
+  labelKey: string;
+  noteKeys: string[];
 }
 
 function parseAmount(value: string): number | null {
@@ -24,7 +29,10 @@ function parseAmount(value: string): number | null {
   return match ? parseFloat(match[0]) : null;
 }
 
-function levelFor(amount: number | null, limits: { moderate: number; high: number }): 'baja' | 'moderada' | 'alta' | null {
+function levelFor(
+  amount: number | null,
+  limits: { moderate: number; high: number }
+): 'baja' | 'moderada' | 'alta' | null {
   if (amount === null) return null;
   if (amount >= limits.high) return 'alta';
   if (amount >= limits.moderate) return 'moderada';
@@ -33,8 +41,7 @@ function levelFor(amount: number | null, limits: { moderate: number; high: numbe
 
 /**
  * Compara los valores reales (Spoonacular/Edamam) contra NUTRITION_LIMITS y
- * arma un veredicto en palabras. La proteína se lee al revés: "alta" es
- * positivo, no una alerta.
+ * arma un veredicto. La proteína se lee al revés: "alta" es positivo.
  */
 export function evaluateNutrition(nutrition: NutritionInfo): NutritionVerdict {
   const calories = parseAmount(nutrition.calories);
@@ -43,60 +50,69 @@ export function evaluateNutrition(nutrition: NutritionInfo): NutritionVerdict {
   const protein = parseAmount(nutrition.protein);
   const sodium = parseAmount(nutrition.sodium);
 
-  const notes: string[] = [];
-
   const caloriesLevel = levelFor(calories, NUTRITION_LIMITS.calories);
-  if (caloriesLevel === 'alta') notes.push('Alta en calorías para una porción');
-  if (caloriesLevel === 'baja') notes.push('Baja en calorías');
-
   const fatLevel = levelFor(fat, NUTRITION_LIMITS.fat);
-  if (fatLevel === 'alta') notes.push('Alta en grasas');
-
   const sodiumLevel = levelFor(sodium, NUTRITION_LIMITS.sodium);
-  if (sodiumLevel === 'alta') notes.push('Alta en sodio');
-
   const proteinLevel = levelFor(protein, NUTRITION_LIMITS.protein);
-  if (proteinLevel === 'alta') notes.push('Buena fuente de proteína');
-
   const carbsLevel = levelFor(carbs, NUTRITION_LIMITS.carbs);
-  if (carbsLevel === 'alta') notes.push('Alta en carbohidratos');
 
-  if (notes.length === 0) {
-    notes.push('Valores dentro de un rango moderado');
-  }
+  const noteKeys: string[] = [];
+  if (caloriesLevel === 'alta') noteKeys.push('nutrition.note.highCalories');
+  if (caloriesLevel === 'baja') noteKeys.push('nutrition.note.lowCalories');
+  if (fatLevel === 'alta') noteKeys.push('nutrition.note.highFat');
+  if (sodiumLevel === 'alta') noteKeys.push('nutrition.note.highSodium');
+  if (proteinLevel === 'alta') noteKeys.push('nutrition.note.highProtein');
+  if (carbsLevel === 'alta') noteKeys.push('nutrition.note.highCarbs');
+  if (noteKeys.length === 0) noteKeys.push('nutrition.note.moderateDefault');
 
   const highCount = [caloriesLevel, fatLevel, sodiumLevel, carbsLevel].filter(
     (level) => level === 'alta'
   ).length;
 
-  let label: string;
+  let labelKey: string;
   if (highCount >= 2) {
-    label = 'Para consumir con moderación';
+    labelKey = 'nutrition.verdict.caution';
   } else if (highCount === 1) {
-    label = 'Moderadamente nutritiva';
+    labelKey = 'nutrition.verdict.moderate';
   } else {
-    label = 'Nutricionalmente equilibrada';
+    labelKey = 'nutrition.verdict.balanced';
   }
 
-  return { label, notes };
+  return { labelKey, noteKeys };
 }
 
+// Los ingredientes pueden venir en inglés (TheMealDB, Spoonacular, Edamam)
+// o en español (recetas propias cargadas a mano): esto es sobre el IDIOMA
+// DEL DATO, no el idioma de la interfaz, así que no usa el sistema de
+// traducciones de la UI.
 const VEGETABLE_KEYWORDS = [
   'onion', 'tomato', 'garlic', 'spinach', 'carrot', 'pepper', 'cabbage',
   'broccoli', 'lettuce', 'cucumber', 'zucchini', 'mushroom', 'pea', 'corn',
   'potato', 'kale', 'celery', 'squash', 'cauliflower',
+  'cebolla', 'tomate', 'ajo', 'espinaca', 'zanahoria', 'chile', 'pimiento',
+  'repollo', 'brócoli', 'lechuga', 'pepino', 'calabacín', 'hongo',
+  'champiñón', 'arveja', 'guisante', 'elote', 'maíz', 'papa', 'patata',
+  'col rizada', 'apio', 'ayote', 'calabaza', 'coliflor', 'yuca', 'culantro',
 ];
 
 const LEAN_PROTEIN_KEYWORDS = [
   'chicken breast', 'chicken', 'fish', 'salmon', 'tuna', 'turkey', 'bean',
   'lentil', 'chickpea', 'tofu', 'egg',
+  'pechuga de pollo', 'pollo', 'pescado', 'salmón', 'atún', 'pavo',
+  'frijol', 'frijoles', 'lenteja', 'garbanzo', 'huevo', 'huevos',
 ];
 
-const WHOLE_GRAIN_KEYWORDS = ['brown rice', 'oat', 'quinoa', 'whole wheat', 'whole grain'];
+const WHOLE_GRAIN_KEYWORDS = [
+  'brown rice', 'oat', 'quinoa', 'whole wheat', 'whole grain',
+  'arroz integral', 'avena', 'quinua', 'trigo integral',
+];
 
 const PROCESSED_KEYWORDS = [
   'bacon', 'sausage', 'ham', 'fried', 'butter', 'cream', 'sugar', 'syrup',
   'cheese', 'lard', 'processed', 'deep-fried',
+  'tocino', 'chorizo', 'salchicha', 'jamón', 'frito', 'frita', 'mantequilla',
+  'crema', 'azúcar', 'almíbar', 'queso', 'manteca', 'chicharrón',
+  'leche condensada', 'leche evaporada',
 ];
 
 function countMatches(ingredients: Ingredient[], keywords: string[]): number {
@@ -107,13 +123,18 @@ function countMatches(ingredients: Ingredient[], keywords: string[]): number {
   );
 }
 
+/**
+ * Solo cuenta ingredientes por categoría y devuelve una clave de veredicto;
+ * el texto final (incluida la interpolación de {count}/{total}) lo arma
+ * quien consuma esto, con t().
+ */
 export interface NutritionEstimate {
-  label: string;
-  summary: string;
+  labelKey: string;
   vegetables: number;
   leanProtein: number;
   wholeGrains: number;
   processed: number;
+  total: number;
 }
 
 /**
@@ -133,25 +154,21 @@ export function estimateFromIngredients(ingredients: Ingredient[]): NutritionEst
   const unhealthyPoints = processed * 1.5;
   const netScore = healthyPoints - unhealthyPoints;
 
-  let label: string;
+  let labelKey: string;
   if (netScore >= 3) {
-    label = 'Nutricionalmente equilibrada (estimado)';
+    labelKey = 'nutrition.estimate.balanced';
   } else if (netScore >= 0) {
-    label = 'Moderada, con espacio para mejorar (estimado)';
+    labelKey = 'nutrition.estimate.moderate';
   } else {
-    label = 'Alta en ingredientes menos saludables (estimado)';
+    labelKey = 'nutrition.estimate.caution';
   }
 
-  const parts: string[] = [];
-  if (vegetables > 0) parts.push(`${vegetables} vegetal(es)`);
-  if (leanProtein > 0) parts.push(`${leanProtein} fuente(s) de proteína magra`);
-  if (wholeGrains > 0) parts.push(`${wholeGrains} grano(s) integral(es)`);
-  if (processed > 0) parts.push(`${processed} ingrediente(s) procesado(s)/frito(s)`);
-
-  const summary =
-    parts.length > 0
-      ? `Detectamos ${parts.join(', ')} entre los ${ingredients.length} ingredientes.`
-      : `No identificamos categorías claras entre los ${ingredients.length} ingredientes.`;
-
-  return { label, summary, vegetables, leanProtein, wholeGrains, processed };
+  return {
+    labelKey,
+    vegetables,
+    leanProtein,
+    wholeGrains,
+    processed,
+    total: ingredients.length,
+  };
 }
