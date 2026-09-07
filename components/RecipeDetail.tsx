@@ -6,6 +6,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import NutritionFacts from '@/components/NutritionFacts';
 import { translateToSpanish } from '@/lib/translate';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { translateArea, translateCategory } from '@/lib/mealdbTranslations';
 import type { MealDetail } from '@/types/meal';
 
 interface RecipeDetailProps {
@@ -17,7 +18,7 @@ interface RecipeDetailProps {
 }
 
 export default function RecipeDetail({ meal, translatable, embedUrl }: RecipeDetailProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [translated, setTranslated] = useState<MealDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -83,8 +84,12 @@ export default function RecipeDetail({ meal, translatable, embedUrl }: RecipeDet
         )}
         <div>
           <div className="recipe-detail-meta">
-            {displayed.category && <span className="tag-pill">{displayed.category}</span>}
-            {displayed.area && <span className="tag-pill">{displayed.area}</span>}
+            {displayed.category && (
+              <span className="tag-pill">{translateCategory(displayed.category, language)}</span>
+            )}
+            {displayed.area && (
+              <span className="tag-pill">{translateArea(displayed.area, language)}</span>
+            )}
             {displayed.tags.map((tag) => (
               <span key={tag} className="tag-pill">
                 {tag}
