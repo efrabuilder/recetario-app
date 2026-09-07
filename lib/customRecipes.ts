@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import type { Ingredient, MealDetail, MealSummary, NutritionInfo } from '@/types/meal';
 
 const CUSTOM_PREFIX = 'custom-';
@@ -43,15 +42,23 @@ interface CustomRecipeRow {
 
 /**
  * Cliente de Supabase, o null si todavía no se configuraron las variables de
- * entorno. Cuando es null, las funciones de este archivo devuelven listas
- * vacías en vez de romper la app: las recetas propias son un "plus" opcional,
- * no un requisito para que el resto funcione.
+ * entorno, o si el paquete @supabase/supabase-js falla al cargarse por
+ * cualquier motivo. El import es dinámico (no un `import` estático arriba del
+ * archivo) a propósito: así, si algo del paquete de Supabase falla, el error
+ * queda contenido acá y nunca tumba las páginas de recetas de TheMealDB, que
+ * ni siquiera necesitan Supabase pero comparten este mismo módulo.
  */
-function getClient() {
+async function getClient() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_ANON_KEY;
   if (!url || !key) return null;
-  return createClient(url, key);
+
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    return createClient(url, key);
+  } catch {
+    return null;
+  }
 }
 
 function toSummary(row: CustomRecipeRow): MealSummary {
@@ -83,7 +90,7 @@ function toDetail(row: CustomRecipeRow): MealDetail {
  * están pensadas para completar quedarían invisibles en el dropdown).
  */
 export async function getCustomAreas(): Promise<string[]> {
-  const client = getClient();
+  const client = await getClient();
   if (!client) return [];
 
   const { data, error } = await client.from('custom_recipes').select('area');
@@ -107,7 +114,7 @@ export async function fetchCustomAreas(): Promise<string[]> {
 
 /** Recetas propias para un país/área puntual (para completar el filtro por región). */
 export async function getCustomRecipesByArea(area: string): Promise<MealSummary[]> {
-  const client = getClient();
+  const client = await getClient();
   if (!client) return [];
 
   const { data, error } = await client
@@ -134,7 +141,7 @@ export async function fetchCustomRecipesByArea(area: string): Promise<MealSummar
 }
 
 export async function getCustomRecipeById(id: string): Promise<MealDetail | null> {
-  const client = getClient();
+  const client = await getClient();
   if (!client) return null;
 
   const { data, error } = await client
