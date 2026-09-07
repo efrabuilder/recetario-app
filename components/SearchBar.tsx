@@ -1,5 +1,7 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
@@ -7,6 +9,8 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
+  const { t } = useLanguage();
+
   return (
     <form
       className="search-row"
@@ -18,13 +22,13 @@ export default function SearchBar({ value, onChange, onSubmit }: SearchBarProps)
       <input
         type="search"
         className="search-input"
-        placeholder="Buscar por nombre, ej. 'chicken curry'"
+        placeholder={t('search.placeholder')}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        aria-label="Buscar recetas por nombre"
+        aria-label={t('search.label')}
       />
       <button type="submit" className="search-submit">
-        Buscar
+        {t('search.submit')}
       </button>
     </form>
   );
