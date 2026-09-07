@@ -3,10 +3,17 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import type { Language } from '@/lib/i18n/translations';
 
 export default function Header() {
   const pathname = usePathname();
   const { favoriteIds, hydrated } = useFavorites();
+  const { language, setLanguage, t } = useLanguage();
+
+  function handleLanguageClick(next: Language): void {
+    setLanguage(next);
+  }
 
   return (
     <header className="site-header">
@@ -38,21 +45,37 @@ export default function Header() {
         </Link>
         <nav className="site-nav">
           <Link href="/" className={pathname === '/' ? 'active' : ''}>
-            Buscar
+            {t('nav.search')}
           </Link>
           <Link href="/drinks" className={pathname === '/drinks' ? 'active' : ''}>
-            Bebidas
+            {t('nav.drinks')}
           </Link>
           <Link
             href="/favorites"
             className={pathname === '/favorites' ? 'active' : ''}
           >
-            Favoritas
+            {t('nav.favorites')}
             {hydrated && favoriteIds.length > 0 && (
               <span className="favorites-count">{favoriteIds.length}</span>
             )}
           </Link>
         </nav>
+        <div className="language-switcher" role="group" aria-label="Idioma / Language">
+          <button
+            type="button"
+            className={language === 'es' ? 'is-active' : ''}
+            onClick={() => handleLanguageClick('es')}
+          >
+            ES
+          </button>
+          <button
+            type="button"
+            className={language === 'en' ? 'is-active' : ''}
+            onClick={() => handleLanguageClick('en')}
+          >
+            EN
+          </button>
+        </div>
       </div>
     </header>
   );
