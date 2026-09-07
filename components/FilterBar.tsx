@@ -1,6 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { translateArea, translateCategory } from '@/lib/mealdbTranslations';
 
 interface FilterBarProps {
   categories: string[];
@@ -23,7 +24,7 @@ export default function FilterBar({
   onClear,
   hasActiveFilters,
 }: FilterBarProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <div className="filter-bar">
@@ -36,7 +37,7 @@ export default function FilterBar({
         <option value="">{t('filter.allCategories')}</option>
         {categories.map((c) => (
           <option key={c} value={c}>
-            {c}
+            {translateCategory(c, language)}
           </option>
         ))}
       </select>
@@ -50,7 +51,7 @@ export default function FilterBar({
         <option value="">{t('filter.allAreas')}</option>
         {areas.map((a) => (
           <option key={a} value={a}>
-            {a}
+            {translateArea(a, language)}
           </option>
         ))}
       </select>
