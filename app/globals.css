@@ -131,6 +131,39 @@ button {
   font-weight: 600;
 }
 
+.language-switcher {
+  display: inline-flex;
+  border: 1.5px solid var(--color-ink);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.language-switcher button {
+  padding: 0.35rem 0.8rem;
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-ink-soft);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.language-switcher button + button {
+  border-left: 1.5px solid var(--color-ink);
+}
+
+.language-switcher button:hover {
+  background: var(--color-border);
+  color: var(--color-ink);
+}
+
+.language-switcher button.is-active {
+  background: var(--color-ink);
+  color: var(--color-surface);
+  cursor: default;
+}
+
 /* ---------- Hero / búsqueda ---------- */
 
 .hero {
@@ -177,11 +210,18 @@ button {
   border-radius: var(--radius-card);
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .search-submit:hover {
   background: var(--color-brick);
   border-color: var(--color-brick);
+  transform: translateY(-1px);
+}
+
+.search-submit:active {
+  transform: translateY(0);
 }
 
 /* ---------- Filtros ---------- */
