@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getCustomRecipesByName } from '@/lib/customRecipes';
+import { getCustomRecipesByNameDebug } from '@/lib/customRecipes';
 
+// ⚠️ VERSIÓN TEMPORAL SOLO PARA DIAGNÓSTICO — expone el error real de
+// Supabase en vez de tragarlo. Revertir a la versión normal (custom-search
+// route original que ya tenés) una vez identificada la causa.
 export async function GET(request: Request): Promise<NextResponse> {
   const query = new URL(request.url).searchParams.get('q') ?? '';
 
-  return getCustomRecipesByName(query)
-    .then((meals) => NextResponse.json(meals))
-    .catch(() =>
-      NextResponse.json(
-        { error: 'No se pudieron buscar las recetas propias' },
-        { status: 500 }
-      )
-    );
+  const result = await getCustomRecipesByNameDebug(query);
+  return NextResponse.json(result);
 }
