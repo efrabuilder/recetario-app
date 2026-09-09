@@ -199,3 +199,31 @@ export async function fetchCustomRecipeSummary(id: string): Promise<MealSummary 
     area: meal.area,
   };
 }
+
+// ⚠️ TEMPORAL — pegar al final de lib/customRecipes.ts para diagnosticar.
+// Borrar esta función (y la ruta custom-search-debug) una vez resuelto.
+export async function getCustomRecipesByNameDebug(query: string) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    return { debug: 'faltan SUPABASE_URL o SUPABASE_ANON_KEY', url: Boolean(url), key: Boolean(key) };
+  }
+
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const client = createClient(url, key);
+
+    const { data, error } = await client
+      .from('custom_recipes')
+      .select('*')
+      .ilike('name', `%${query}%`);
+
+    if (error) {
+      return { debug: 'error de Supabase', error };
+    }
+    return { debug: 'ok', count: data?.length ?? 0, data };
+  } catch (err) {
+    return { debug: 'excepción al crear el cliente', message: String(err) };
+  }
+}
