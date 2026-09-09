@@ -17,7 +17,11 @@ import {
   isSpoonacularCuisine,
 } from '@/lib/spoonacular';
 import { filterByEdamamCuisine, isEdamamCuisine } from '@/lib/edamam';
-import { fetchCustomAreas, fetchCustomRecipesByArea } from '@/lib/customRecipes';
+import {
+  fetchCustomAreas,
+  fetchCustomRecipesByArea,
+  fetchCustomRecipesByName,
+} from '@/lib/customRecipes';
 import type { MealSummary } from '@/types/meal';
 
 export default function HomePage() {
@@ -85,7 +89,14 @@ export default function HomePage() {
   function handleSearchSubmit() {
     setCategory('');
     setArea('');
-    runFetch(() => searchMealsByName(queryInput.trim()));
+    const query = queryInput.trim();
+    runFetch(async () => {
+      const [mealDbResults, customResults] = await Promise.all([
+        searchMealsByName(query),
+        fetchCustomRecipesByName(query).catch(() => []),
+      ]);
+      return [...mealDbResults, ...customResults];
+    });
   }
 
   function handleCategoryChange(value: string) {
