@@ -126,6 +126,32 @@ export async function getCustomRecipesByArea(area: string): Promise<MealSummary[
   return (data as CustomRecipeRow[]).map(toSummary);
 }
 
+/** Recetas propias cuyo nombre coincide con `query` (para sumarlas a la búsqueda por nombre). */
+export async function getCustomRecipesByName(query: string): Promise<MealSummary[]> {
+  const client = await getClient();
+  if (!client || !query) return [];
+
+  const { data, error } = await client
+    .from('custom_recipes')
+    .select('*')
+    .ilike('name', `%${query}%`);
+
+  if (error || !data) return [];
+  return (data as CustomRecipeRow[]).map(toSummary);
+}
+
+/**
+ * Llamada desde el navegador (la home) a nuestra propia ruta
+ * /api/custom-search.
+ */
+export async function fetchCustomRecipesByName(query: string): Promise<MealSummary[]> {
+  const res = await fetch(`/api/custom-search?q=${encodeURIComponent(query)}`);
+  if (!res.ok) {
+    throw new Error(`La búsqueda de recetas propias respondió ${res.status}`);
+  }
+  return (await res.json()) as MealSummary[];
+}
+
 /**
  * Llamada desde el navegador (componente cliente, ej. la home) a nuestra
  * propia ruta /api/custom-cuisine. Aunque la anon key de Supabase está
