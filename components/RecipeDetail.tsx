@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import FavoriteButton from '@/components/FavoriteButton';
 import NutritionFacts from '@/components/NutritionFacts';
@@ -12,7 +12,7 @@ import type { MealDetail } from '@/types/meal';
 interface RecipeDetailProps {
   meal: MealDetail;
   // false para recetas propias: esas ya están cargadas en español, así que
-  // no tiene sentido ofrecer el botón de traducir.
+  // no hace falta traducir nada al cambiar el idioma.
   translatable: boolean;
   embedUrl: string | null;
 }
@@ -25,14 +25,21 @@ export default function RecipeDetail({ meal, translatable, embedUrl }: RecipeDet
 
   const displayed = translated ?? meal;
 
-  async function handleToggle() {
-    setHasError(false);
+  // El selector ES/EN del header es ahora el único control: al pasar a
+  // español se traduce nombre + ingredientes + instrucciones (contenido
+  // libre que las APIs solo entregan en inglés); al volver a inglés se
+  // muestra el original. Ya no depende de un botón aparte.
+  useEffect(() => {
+    if (!translatable) return;
 
-    if (translated) {
+    if (language !== 'es') {
       setTranslated(null);
+      setHasError(false);
       return;
     }
 
+    let cancelled = false;
+    setHasError(false);
     setLoading(true);
 
     const ingredientNames = meal.ingredients.map((ingredient) => ingredient.name);
@@ -40,32 +47,38 @@ export default function RecipeDetail({ meal, translatable, embedUrl }: RecipeDet
       ? [meal.name, ...ingredientNames, meal.instructions]
       : [meal.name, ...ingredientNames];
 
-    try {
-      const results = await Promise.all(
-        textsToTranslate.map((text) => translateToSpanish(text))
-      );
+    Promise.all(textsToTranslate.map((text) => translateToSpanish(text)))
+      .then((results) => {
+        if (cancelled) return;
 
-      const [translatedName, ...rest] = results;
-      const translatedIngredientNames = rest.slice(0, ingredientNames.length);
-      const translatedInstructions = meal.instructions
-        ? rest[ingredientNames.length]
-        : null;
+        const [translatedName, ...rest] = results;
+        const translatedIngredientNames = rest.slice(0, ingredientNames.length);
+        const translatedInstructions = meal.instructions
+          ? rest[ingredientNames.length]
+          : null;
 
-      setTranslated({
-        ...meal,
-        name: translatedName,
-        ingredients: meal.ingredients.map((ingredient, index) => ({
-          ...ingredient,
-          name: translatedIngredientNames[index] ?? ingredient.name,
-        })),
-        instructions: translatedInstructions,
+        setTranslated({
+          ...meal,
+          name: translatedName,
+          ingredients: meal.ingredients.map((ingredient, index) => ({
+            ...ingredient,
+            name: translatedIngredientNames[index] ?? ingredient.name,
+          })),
+          instructions: translatedInstructions,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setHasError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
-    } catch {
-      setHasError(true);
-    } finally {
-      setLoading(false);
-    }
-  }
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language, translatable, meal.id]);
 
   return (
     <article>
@@ -113,24 +126,11 @@ export default function RecipeDetail({ meal, translatable, embedUrl }: RecipeDet
         </div>
       </div>
 
-      {translatable && (
-        <div className="instructions-toolbar">
-          <button
-            type="button"
-            className="translate-button"
-            onClick={handleToggle}
-            disabled={loading}
-          >
-            {loading
-              ? t('recipe.translating')
-              : translated
-                ? t('recipe.viewOriginalLang')
-                : t('recipe.translateAll')}
-          </button>
-          {translated && !loading && (
-            <span className="translate-note">{t('recipe.translateNote')}</span>
-          )}
-        </div>
+      {translatable && loading && (
+        <p className="translate-note">{t('recipe.translating')}</p>
+      )}
+      {translatable && translated && !loading && (
+        <p className="translate-note">{t('recipe.translateNote')}</p>
       )}
       {hasError && <p className="translate-error">{t('recipe.translateError')}</p>}
 
