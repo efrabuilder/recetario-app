@@ -188,6 +188,7 @@ export async function getSpoonacularMealById(
     category: data.dishTypes?.[0],
     area: data.cuisines?.[0],
     instructions: stripHtml(data.instructions),
+    instructionsEn: null,
     tags: data.dishTypes ?? [],
     youtubeUrl: null,
     sourceUrl: data.sourceUrl ?? null,
