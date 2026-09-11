@@ -110,6 +110,7 @@ function toDetail(recipe: EdamamRecipe): MealDetail {
     ...toSummary(recipe),
     // Edamam no entrega pasos de preparación propios, solo enlaza a la fuente.
     instructions: null,
+    instructionsEn: null,
     tags: recipe.mealType ?? [],
     youtubeUrl: null,
     sourceUrl: recipe.url ?? null,
