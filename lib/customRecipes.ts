@@ -25,7 +25,8 @@ export function stripCustomPrefix(id: string): string {
  *   source_url text,
  *   ingredients jsonb not null default '[]',
  *   nutrition jsonb,
- *   youtube_url text
+ *   youtube_url text,
+ *   instructions_en text
  * );
  */
 interface CustomRecipeRow {
@@ -35,6 +36,9 @@ interface CustomRecipeRow {
   category: string | null;
   area: string;
   instructions: string | null;
+  // Traducción al inglés escrita a mano (no generada por la API de
+  // traducción), paso a paso igual que `instructions`.
+  instructions_en: string | null;
   tags: string[] | null;
   source_url: string | null;
   ingredients: Ingredient[] | null;
@@ -77,6 +81,7 @@ function toDetail(row: CustomRecipeRow): MealDetail {
   return {
     ...toSummary(row),
     instructions: row.instructions,
+    instructionsEn: row.instructions_en,
     tags: row.tags ?? [],
     youtubeUrl: row.youtube_url,
     sourceUrl: row.source_url,
