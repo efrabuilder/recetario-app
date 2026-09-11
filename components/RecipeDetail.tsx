@@ -25,10 +25,27 @@ export default function RecipeDetail({ meal, translatable, embedUrl }: RecipeDet
 
   const displayed = translated ?? meal;
 
+  // Contenido bilingüe nativo (escrito a mano en ambos idiomas, ver
+  // meal.instructionsEn): no depende de la API de traducción, cambia al
+  // instante con el selector ES/EN del header.
+  const displayedInstructions =
+    !translatable && language === 'en' && meal.instructionsEn
+      ? meal.instructionsEn
+      : displayed.instructions;
+
+  const instructionSteps = displayedInstructions
+    ? displayedInstructions
+        .split('\n')
+        .map((step) => step.trim())
+        .filter(Boolean)
+    : [];
+
   // El selector ES/EN del header es ahora el único control: al pasar a
   // español se traduce nombre + ingredientes + instrucciones (contenido
   // libre que las APIs solo entregan en inglés); al volver a inglés se
-  // muestra el original. Ya no depende de un botón aparte.
+  // muestra el original. Ya no depende de un botón aparte. Esto solo aplica
+  // a recetas de API (translatable=true); las propias usan instructionsEn
+  // de arriba, sin llamar a ninguna API.
   useEffect(() => {
     if (!translatable) return;
 
@@ -151,8 +168,12 @@ export default function RecipeDetail({ meal, translatable, embedUrl }: RecipeDet
 
         <div>
           <h2>{t('recipe.preparation')}</h2>
-          {displayed.instructions ? (
-            <p className="instructions">{displayed.instructions}</p>
+          {instructionSteps.length > 0 ? (
+            <ol className="instructions-steps">
+              {instructionSteps.map((step, index) => (
+                <li key={index}>{step}</li>
+              ))}
+            </ol>
           ) : (
             <p className="instructions">{t('recipe.noInstructions')}</p>
           )}
