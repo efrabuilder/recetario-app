@@ -42,6 +42,10 @@ export interface NutritionInfo {
 // Forma completa que usamos en la página de detalle
 export interface MealDetail extends MealSummary {
   instructions: string | null;
+  // Solo para recetas propias con contenido bilingüe nativo (ver
+  // lib/customRecipes.ts): instrucciones ya escritas en inglés, para que
+  // el selector ES/EN cambie al instante sin llamar a la API de traducción.
+  instructionsEn: string | null;
   tags: string[];
   youtubeUrl: string | null;
   sourceUrl: string | null;
