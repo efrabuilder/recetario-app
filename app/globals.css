@@ -517,6 +517,18 @@ button {
   max-width: 68ch;
 }
 
+.instructions-steps {
+  max-width: 68ch;
+  padding-left: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.instructions-steps li {
+  padding-left: 0.4rem;
+}
+
 .video-embed {
   margin-top: 2rem;
 }
