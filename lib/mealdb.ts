@@ -46,6 +46,7 @@ function toDetail(meal: RawMeal): MealDetail {
   return {
     ...toSummary(meal),
     instructions: meal.strInstructions,
+    instructionsEn: null,
     tags,
     youtubeUrl: meal.strYoutube || null,
     sourceUrl: meal.strSource || null,
