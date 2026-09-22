@@ -2,15 +2,34 @@ import type { MealDetail, MealSummary, RawMeal } from '@/types/meal';
 
 const BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
+// Si TheMealDB se cuelga (no responde ni con éxito ni con error), esto corta
+// la espera a los 8 segundos. Sin esto, un solo fetch trabado deja el
+// Promise.all de getFullMealCatalog esperando para siempre.
+const FETCH_TIMEOUT_MS = 8000;
+
 /**
  * TheMealDB devuelve { meals: [...] } o { meals: null } cuando no hay resultados.
  * Este helper centraliza el fetch + manejo de ese caso para no repetirlo.
  */
 async function fetchMeals(path: string): Promise<RawMeal[]> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    // Los datos de recetas casi no cambian; evitamos golpear la API en cada render.
-    next: { revalidate: 3600 },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      // Los datos de recetas casi no cambian; evitamos golpear la API en cada render.
+      next: { revalidate: 3600 },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error(`TheMealDB no respondió a tiempo para ${path}`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     throw new Error(`TheMealDB respondió ${res.status} para ${path}`);
@@ -131,9 +150,18 @@ export async function getMealsByIds(ids: string[]): Promise<MealDetail[]> {
  * resultados, algo que la pantalla ya maneja).
  */
 export async function getAllAreas(): Promise<string[]> {
-  const res = await fetch(`${BASE_URL}/list.php?a=list`, {
-    next: { revalidate: 3600 },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/list.php?a=list`, {
+      next: { revalidate: 3600 },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     throw new Error(`TheMealDB respondió ${res.status} para list.php?a=list`);
